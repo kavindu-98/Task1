@@ -4,15 +4,55 @@ pageextension 50103 "Accountant Activities CardPart" extends "Accountant Activit
     {
         addlast(Financials)
         {
-            //  Caption = 'Financials';
-            field("Bank Guarantees to be expired"; Rec."Bank Guarantees to be expired")
+            field("Bank Guarantees To Be Expired"; Rec."Bank Guarantees To Be Expired")
             {
                 ApplicationArea = Basic, Suite;
-                Caption = 'Bank Guarantees to be expired';
-                DrillDownPageID = "Bank Guarantee";
+                Caption = 'Bank Guarantees To Be Expired';
                 Image = Cash;
-                ToolTip = 'Specifies a window to reconcile unpaid documents automatically with their related bank transactions by importing a bank statement feed or file. In the payment reconciliation journal, incoming or outgoing payments on your bank are automatically, or semi-automatically, applied to their related open customer or vendor ledger entries. Any open bank account ledger entries related to the applied customer or vendor ledger entries will be closed when you choose the Post Payments and Reconcile Bank Account action. This means that the bank account is automatically reconciled for payments that you post with the journal.';
+
+                trigger OnDrillDown()
+                var
+                    BankGuarantee: Record "Bank Guarantee";
+                    SalesReceviableSetup: Record "Sales & Receivables Setup";
+                    WorkDate: Date;
+                    DateSR: DateFormula;
+                begin
+                    Clear(BankGuarantee);
+                    Clear(SalesReceviableSetup);
+                    WorkDate := Today;
+                    SalesReceviableSetup.Get();
+                    DateSR := SalesReceviableSetup."Bank Guarantee Formular";
+                    BankGuarantee.SetRange(Status, BankGuarantee.Status::Active);
+                    BankGuarantee.SetFilter("End Date", '..%1&<>%2', CalcDate(format(DateSR), Today), 0D);
+                    if (BankGuarantee.FindFirst()) then begin
+                        Page.Run(Page::"Bank Guarantee List", BankGuarantee);
+                        CurrPage.Editable := false;
+                    end;
+                end;
             }
         }
     }
+
+    trigger OnAfterGetRecord()
+    var
+        BankGuarantee: Record "Bank Guarantee";
+        SalesReceviableSetup: Record "Sales & Receivables Setup";
+        WorkDate: Date;
+        DateSR: DateFormula;
+    begin
+        Clear(BankGuarantee);
+        Clear(SalesReceviableSetup);
+        WorkDate := Today;
+        SalesReceviableSetup.Get();
+        DateSR := SalesReceviableSetup."Bank Guarantee Formular";
+        BankGuarantee.SetRange(Status, BankGuarantee.Status::Active);
+        BankGuarantee.SetFilter("End Date", '..%1&<>%2', CalcDate(format(DateSR), Today), 0D);
+        if (BankGuarantee.FindFirst()) then begin
+            Rec."Bank Guarantees to be expired" := BankGuarantee.Count();
+        end;
+    end;
+
+
+
+
 }

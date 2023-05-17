@@ -5,7 +5,8 @@ page 50101 "Bank Guarantee List"
     PageType = List;
     CardPageId = "Bank Guarantee";
     SourceTable = "Bank Guarantee";
-    UsageCategory = Administration;
+    UsageCategory = Lists;
+    ModifyAllowed = false;
 
     layout
     {
